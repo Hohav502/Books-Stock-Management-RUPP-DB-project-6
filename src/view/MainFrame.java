@@ -14,6 +14,7 @@ import java.awt.event.WindowEvent;
 public class MainFrame extends JFrame {
     private User loggedInUser;
     private JTabbedPane tabbedPane;
+    private BookPanel bookPanel; // Keep a reference to BookPanel
 
     public MainFrame(User user) {
         this.loggedInUser = user;
@@ -41,17 +42,19 @@ public class MainFrame extends JFrame {
         tabbedPane = new JTabbedPane();
         tabbedPane.setFont(new Font("Arial", Font.BOLD, 14));
 
+        // Initialize BookPanel here so we can get a reference to it
+        bookPanel = new BookPanel();
+
         // Add panels based on user role
-        tabbedPane.addTab("Home", new HomePanel(loggedInUser)); // New Home Panel for User features
+        // Pass MainFrame reference to HomePanel so it can interact with other tabs/panels
+        tabbedPane.addTab("Home", new HomePanel(loggedInUser, this));
         tabbedPane.addTab("Dashboard", new DashboardPanel(loggedInUser));
         tabbedPane.addTab("Search Books", new SearchPanel());
 
-        if ("Owner".equals(loggedInUser.getRole())) { // Changed from "Admin" to "Owner"
-            tabbedPane.addTab("Books", new BookPanel());
+        if ("Owner".equals(loggedInUser.getRole())) {
+            tabbedPane.addTab("Books", bookPanel); // Use the initialized bookPanel
             tabbedPane.addTab("Categories", new CategoryPanel());
             tabbedPane.addTab("Users", new UserPanel());
-            // Potentially add Purchase management for Owner
-            // tabbedPane.addTab("Purchases", new PurchasePanel());
         }
 
         add(tabbedPane, BorderLayout.CENTER);
@@ -80,6 +83,26 @@ public class MainFrame extends JFrame {
         topPanel.add(logoutButton, BorderLayout.EAST);
         add(topPanel, BorderLayout.NORTH);
     }
+
+    /**
+     * Returns the instance of the BookPanel. This allows other panels (like HomePanel)
+     * to interact with the BookPanel's methods.
+     * @return The BookPanel instance.
+     */
+    public BookPanel getBookPanel() {
+        return bookPanel;
+    }
+
+    /**
+     * Switches the selected tab in the JTabbedPane.
+     * @param tabName The title of the tab to switch to.
+     */
+    public void switchToTab(String tabName) {
+        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+            if (tabbedPane.getTitleAt(i).equals(tabName)) {
+                tabbedPane.setSelectedIndex(i);
+                break;
+            }
+        }
+    }
 }
-
-

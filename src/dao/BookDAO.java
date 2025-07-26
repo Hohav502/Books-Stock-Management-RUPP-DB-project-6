@@ -211,7 +211,7 @@ public class BookDAO {
     public List<Book> searchBooks(String keyword) {
         List<Book> books = new ArrayList<>();
         String sql = "SELECT b.*, c.name AS category_name FROM Books b LEFT JOIN Categories c ON b.category_id = c.id " +
-                "WHERE b.title LIKE ? OR b.author LIKE ? OR b.isbn LIKE ? OR b.id LIKE ? OR c.name LIKE ?";
+                "WHERE b.title LIKE ? OR b.author LIKE ? OR b.isbn LIKE ? OR b.id::text LIKE ? OR c.name LIKE ?"; // Corrected: b.id::text
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -219,7 +219,7 @@ public class BookDAO {
             pstmt.setString(1, searchKeyword);
             pstmt.setString(2, searchKeyword);
             pstmt.setString(3, searchKeyword);
-            pstmt.setString(4, searchKeyword); // Search by ID as string
+            pstmt.setString(4, searchKeyword); // Search by ID as string, now with explicit cast
             pstmt.setString(5, searchKeyword); // Search by Category name
 
             try (ResultSet rs = pstmt.executeQuery()) {

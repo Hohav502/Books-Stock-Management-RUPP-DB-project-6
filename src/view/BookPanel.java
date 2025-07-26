@@ -16,6 +16,7 @@ import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Vector; // Import Vector for DefaultTableModel
 
 /**
  * Panel for managing books (add, edit, delete, view).
@@ -56,7 +57,7 @@ public class BookPanel extends JPanel {
         addListeners();
         populateCategoryComboBox();
         refreshBookTable();
-        setFormEditable(false); // Initially disable form fields
+        // setFormEditable(false); // This is now handled by clearForm() called in refreshBookTable()
     }
 
     private void initComponents() {
@@ -261,7 +262,11 @@ public class BookPanel extends JPanel {
         categoryComboBox.setModel(model);
     }
 
-    private void refreshBookTable() {
+    /**
+     * Refreshes the book table with the latest data from the database
+     * and resets the form to a state ready for adding new books.
+     */
+    public void refreshBookTable() {
         bookController.populateBookTable(tableModel);
         clearForm(); // Clear form after refresh
         setFormEditable(false); // Disable form fields
@@ -270,6 +275,10 @@ public class BookPanel extends JPanel {
         deleteButton.setEnabled(false);
     }
 
+    /**
+     * Displays book details from a selected row in the table into the form fields.
+     * @param selectedRow The index of the selected row.
+     */
     private void displayBookDetails(int selectedRow) {
         idField.setText(tableModel.getValueAt(selectedRow, 0).toString());
         titleField.setText(tableModel.getValueAt(selectedRow, 1).toString());
@@ -291,6 +300,42 @@ public class BookPanel extends JPanel {
 
         loadImagePreview();
     }
+
+    /**
+     * Public method to display book details in the form, typically called from other panels
+     * (e.g., from HomePanel when an Owner clicks "Edit" on a book card).
+     * @param book The Book object whose details are to be displayed.
+     */
+    public void displayBookDetails(Book book) {
+        if (book == null) {
+            clearForm();
+            return;
+        }
+        idField.setText(String.valueOf(book.getId()));
+        titleField.setText(book.getTitle());
+        authorField.setText(book.getAuthor());
+        // Set selected category in combo box
+        for (int i = 0; i < categoryComboBox.getItemCount(); i++) {
+            Category category = categoryComboBox.getItemAt(i);
+            if (category != null && category.getId() == book.getCategoryId()) {
+                categoryComboBox.setSelectedItem(category);
+                break;
+            }
+        }
+        priceField.setText(book.getPrice().toPlainString());
+        quantityField.setText(String.valueOf(book.getQuantity()));
+        isbnField.setText(book.getIsbn());
+        publicationDateField.setText(book.getPublicationDate() != null ? book.getPublicationDate().toString() : "");
+        descriptionArea.setText(book.getDescription());
+        imageUrlField.setText(book.getImageUrl());
+
+        loadImagePreview();
+        setFormEditable(true); // Enable form for editing
+        addButton.setEnabled(false); // Disable add when editing
+        updateButton.setEnabled(true);
+        deleteButton.setEnabled(true);
+    }
+
 
     private void loadImagePreview() {
         String imageUrl = imageUrlField.getText();
@@ -385,6 +430,9 @@ public class BookPanel extends JPanel {
         }
     }
 
+    /**
+     * Deletes a book selected in the table.
+     */
     private void deleteSelectedBook() {
         int selectedRow = bookTable.getSelectedRow();
         if (selectedRow == -1) {
@@ -393,6 +441,15 @@ public class BookPanel extends JPanel {
         }
 
         int bookId = (int) tableModel.getValueAt(selectedRow, 0);
+        performDeleteBook(bookId);
+    }
+
+    /**
+     * Public method to perform book deletion, typically called from other panels
+     * (e.g., from HomePanel when an Owner clicks "Delete" on a book card).
+     * @param bookId The ID of the book to delete.
+     */
+    public void performDeleteBook(int bookId) {
         int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this book?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
