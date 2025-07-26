@@ -1,7 +1,4 @@
 
-markdown
-Copy
-Edit
 # 📚 Book Stock Management System
 
 A Spring Boot web application built for the Royal University of Phnom Penh (RUPP) project. It provides a complete solution for managing bookstore inventory with two user roles: **Owner** and **User**.
